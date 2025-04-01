@@ -16,6 +16,10 @@ const userSchema = mongoose.Schema(
 			trim: true,
 			select: false,
 		},
+		status: {
+			type: Boolean,
+			default: false,
+		},
 		forgotPasswordCode: {
 			type: String,
 			select: false,
