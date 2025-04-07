@@ -7,6 +7,7 @@ const {
 	changePasswordSchema,
 	acceptFPCodeSchema,
 } = require('../middlewares/validator');
+
 const User = require('../models/users');
 const { doHash, doHashValidation, hmacProcess } = require('../utils/hashing');
 const transport = require('../middlewares/sendMail');
@@ -63,6 +64,7 @@ exports.signin = async (req, res) => {
 				.status(401)
 				.json({ success: false, message: 'User does not exists!' });
 		}
+
 		const result = await doHashValidation(password, existingUser.password);
 		if (!result) {
 			return res
@@ -92,6 +94,7 @@ exports.signin = async (req, res) => {
 				token,
 				message: 'logged in successfully',
 			});
+
 	} catch (error) {
 		console.log(error);
 	}

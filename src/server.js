@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const connection = require('./config/database')
 
 const authRouter = require('./routers/authentication');
+const imageRouter = require('./routers/image');
+const userInfoRouter = require('./routers/userInfo');
 
 const app = express();
 app.use(cors());
@@ -16,10 +18,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Connecting database
-connection()
+connection();
 
 // Call router
 app.use('/api/auth', authRouter);
+app.use('/api/image', imageRouter);
+app.use('/api/user-info', userInfoRouter);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Hello from the server' });
