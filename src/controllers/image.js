@@ -12,6 +12,7 @@ exports.postImage = async (req, res) => {
         });
 
         await newImage.save();
+        
         res.status(201).json({
             message: "Image saved",
             imageId: newImage._id

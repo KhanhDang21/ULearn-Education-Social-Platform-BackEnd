@@ -9,6 +9,8 @@ const connection = require('./config/database')
 const authRouter = require('./routers/authentication');
 const imageRouter = require('./routers/image');
 const userInfoRouter = require('./routers/userInfo');
+const postRouter = require('./routers/post');
+const commentRouter = require('./routers/comment')
 
 const app = express();
 app.use(cors());
@@ -24,6 +26,9 @@ connection();
 app.use('/api/auth', authRouter);
 app.use('/api/image', imageRouter);
 app.use('/api/user-info', userInfoRouter);
+app.use('/api/post', postRouter);
+app.use('/api/comment', commentRouter);
+
 
 app.get('/', (req, res) => {
     res.json({ message: 'Hello from the server' });
