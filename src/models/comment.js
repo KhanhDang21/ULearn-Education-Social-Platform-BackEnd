@@ -8,9 +8,9 @@ const commentSchema = mongoose.Schema(
             required: true
         },
         userId: {
-            type: String,
-            required: true,
-            trim: true
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
         },
         content: {
             type: String,

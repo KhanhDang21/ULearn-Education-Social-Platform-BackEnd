@@ -74,6 +74,7 @@ exports.signin = async (req, res) => {
 		const token = jwt.sign(
 			{
 				userId: existingUser._id,
+				userInfoId: existingUser.userInfoId,
 				email: existingUser.email,
 				verified: existingUser.verified,
 			},
@@ -247,5 +248,22 @@ exports.verifyForgotPasswordCode = async (req, res) => {
 			.json({ success: false, message: 'unexpected occured!!' });
 	} catch (error) {
 		console.log(error);
+	}
+};
+
+exports.getCurrentUser = async (req, res) => {
+	try {
+		const user = await User.findById(req.user.userId).select('-password');
+		const email = await User.findOne({email: req.user.email});
+		const userInfo = await UserInfo.findOne({ userId: req.user.userId });
+
+		if (!user) {
+			return res.status(404).json({ success: false, message: 'User not found' });
+		}
+
+		res.status(200).json({ success: true, user, email, userInfo });
+	} catch (err) {
+		console.log(err);
+		res.status(500).json({ success: false, message: 'Server error' });
 	}
 };

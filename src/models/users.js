@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const userSchema = mongoose.Schema(
 	{
+		userInfoId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "UserInfo",
+			required: true
+		},
 		email: {
 			type: String,
 			required: [true, 'Email is required!'],

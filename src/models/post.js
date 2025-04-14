@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const postSchema = mongoose.Schema(
     {
         userId: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
             required: [true, 'UserId is required!'],
             trim: true,
         },
@@ -15,8 +16,12 @@ const postSchema = mongoose.Schema(
             type: String
         },
         comments: [{
-            type: mongoose.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
         }],
+        react: {
+            type: Number,
+            default: 0
+        },
         status: {
             type: Boolean,
             default: true
