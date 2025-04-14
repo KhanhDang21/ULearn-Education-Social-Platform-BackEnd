@@ -9,6 +9,7 @@ const {
 } = require('../middlewares/validator');
 
 const User = require('../models/users');
+const UserInfo = require('../models/userInfo');
 const { doHash, doHashValidation, hmacProcess } = require('../utils/hashing');
 const transport = require('../middlewares/sendMail');
 
