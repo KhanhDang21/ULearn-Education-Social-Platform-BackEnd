@@ -2,15 +2,21 @@ const UserInfo = require('../models/userInfo');
 const User = require('../models/users');
 
 exports.postUserInfo = async (req, res) => {
-    const {userId, name, bio, university, imageId} = req.body;
-    try{
+    const { name, bio, university, imageId } = req.body;
+    const userId = req.user;
+    try {
         const newUserInfo = new UserInfo({
             userId,
             name,
-            bio, 
+            bio,
             university,
             imageId
         });
+
+        await User.findByIdAndUpdate(
+            userId,
+            { userInfoId: savedUserInfo._id, },
+        );
 
         await newUserInfo.save();
 
@@ -19,20 +25,20 @@ exports.postUserInfo = async (req, res) => {
             data: newUserInfo
         })
     }
-    catch (error){
+    catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 }
 
 exports.getUserInfo = async (req, res) => {
-    try{
+    try {
         const userInfor = await UserInfo.findById(req.params.id);
 
         if (!userInfor) {
             return res.status(404).send('Not found');
         }
-        
+
         res.json({
             message: "Get userInfo successfully",
             data: userInfor
@@ -45,13 +51,13 @@ exports.getUserInfo = async (req, res) => {
 }
 
 exports.updateUserInfo = async (req, res) => {
-    try{
+    try {
         const updatedUserInfo = await UserInfo.findByIdAndUpdate(
             req.params.id,
             {
                 userId: req.userId,
                 name: req.name,
-                bio: req.bio, 
+                bio: req.bio,
                 university: req.university,
                 imageId: req.ImageId
             },
@@ -66,26 +72,26 @@ exports.updateUserInfo = async (req, res) => {
             data: updatedUserInfo
         });
     }
-    catch (error){
+    catch (error) {
         console.error('Error:', error);
     }
 }
 
 exports.deleteUserInfo = async (req, res) => {
-    try{
+    try {
         const UserInfo = UserInfo.findByIdAndDelete(req.params.id);
 
         if (!UserInfo) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 message: 'Not found'
             });
         }
 
-        res.json({ 
-            message: 'Deleted UserInfo successfully', 
+        res.json({
+            message: 'Deleted UserInfo successfully',
         });
     }
-    catch (error){
+    catch (error) {
         console.error('Error:', error);
     }
 }
