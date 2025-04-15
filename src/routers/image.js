@@ -6,7 +6,7 @@ const multer = require('multer');
 const upload = multer();
 const router = express.Router();
 
-router.post('/post', identifier, upload.single('image'), imageController.postImage);
+router.post('/post', upload.single('image'), imageController.postImage);
 router.get('/get/:id', identifier, imageController.getImage);
 router.put('/update/:id', identifier, upload.single('image'), imageController.updateImage);
 router.delete('/delete/:id', identifier, imageController.deleteImage);

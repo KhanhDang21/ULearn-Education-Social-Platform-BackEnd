@@ -256,7 +256,7 @@ exports.getCurrentUser = async (req, res) => {
 	try {
 		const user = await User.findById(req.user.userId).select('-password');
 		const email = await User.findOne({email: req.user.email});
-		const userInfo = await UserInfo.findOne({ userId: req.user.userId });
+		const userInfo = await UserInfo.findById(req.user.userInfoId);
 
 		if (!user) {
 			return res.status(404).json({ success: false, message: 'User not found' });

@@ -3,10 +3,10 @@ const User = require('../models/users');
 
 exports.postUserInfo = async (req, res) => {
     const { name, bio, university, imageId } = req.body;
-    const userId = req.user.userId;
+    //const userId = req.user.userId;
     try {
         const newUserInfo = new UserInfo({
-            userId,
+            //userId,
             name,
             bio,
             university,
@@ -14,8 +14,9 @@ exports.postUserInfo = async (req, res) => {
         });
 
         await User.findByIdAndUpdate(
-            userId,
+            //userId,
             { userInfoId: newUserInfo._id, },
+            { new: true }
         );
 
         await newUserInfo.save();
