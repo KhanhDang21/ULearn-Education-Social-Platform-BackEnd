@@ -114,5 +114,5 @@ exports.addPost = async (req, res) => {
 
 exports.deleteGroup = async (req, res) => {
     await Group.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Group deleted' });
+  res.json({ message: 'Group deleted' });
 }
