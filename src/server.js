@@ -10,7 +10,8 @@ const authRouter = require('./routers/authentication');
 const imageRouter = require('./routers/image');
 const userInfoRouter = require('./routers/userInfo');
 const postRouter = require('./routers/post');
-const commentRouter = require('./routers/comment')
+const commentRouter = require('./routers/comment');
+const groupRouter = require('./routers/group');
 
 const app = express();
 app.use(cors());
@@ -28,7 +29,7 @@ app.use('/api/image', imageRouter);
 app.use('/api/user-info', userInfoRouter);
 app.use('/api/post', postRouter);
 app.use('/api/comment', commentRouter);
-
+app.use('/api/group', groupRouter);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Hello from the server' });
