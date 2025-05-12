@@ -66,36 +66,29 @@ exports.getUserInfo = async (req, res) => {
 };
 
 exports.updateUserInfo = async (req, res) => {
-  // 1. Đảm bảo req.user.userId đã được set bởi authenticateJWT
-  const userId = req.user?.userId;
-  if (!userId) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Unauthorized: no user ID" });
-  }
-
-  // 2. Lấy id của UserInfo từ params, và data cần cập nhật từ body
-  const userInfoId = req.params.id;
+  // 1) Lấy đúng các field từ body
   const { name, bio, university, imageId } = req.body;
+  const id = req.params.id;
 
   try {
-    // 3. Cập nhật
-    const updatedUserInfo = await UserInfo.findByIdAndUpdate(
-      userInfoId,
+    // 2) Tìm document đã có và cập nhật
+    const updated = await UserInfo.findByIdAndUpdate(
+      id,
       { name, bio, university, imageId },
-      { new: true, runValidators: true }
+      { new: true }
     );
-    if (!updatedUserInfo) {
+
+    if (!updated) {
       return res
         .status(404)
         .json({ success: false, message: "UserInfo not found" });
     }
 
-    // 4. Trả về JSON
+    // 3) Trả về object đã cập nhật
     return res.json({
       success: true,
-      message: "Update UserInfo successfully",
-      data: updatedUserInfo,
+      message: "UserInfo updated successfully",
+      data: updated,
     });
   } catch (error) {
     console.error("Error in updateUserInfo:", error);

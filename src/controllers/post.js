@@ -120,10 +120,11 @@ exports.deletePost = async (req, res) => {
 
 exports.getAllPosts = async (req, res) => {
   try {
-    // 1) Lấy posts mới nhất trước, join vào User và UserInfo
     const posts = await Post.aggregate([
+      // 1) Sort posts mới nhất trước
       { $sort: { createdAt: -1 } },
-      // join với bảng users để lấy email / tên (nếu cần)
+
+      // 2) Join vào collection users để lấy thông tin cơ bản
       {
         $lookup: {
           from: "users",
@@ -133,22 +134,34 @@ exports.getAllPosts = async (req, res) => {
         },
       },
       { $unwind: "$user" },
-      // join với bảng userinfos để lấy avatar và name
+
+      // 3) Join vào collection userinfos để lấy name + avatar
       {
         $lookup: {
           from: "userinfos",
           localField: "userId",
           foreignField: "userId",
-          as: "info",
+          as: "userInfo",
         },
       },
       {
         $unwind: {
-          path: "$info",
+          path: "$userInfo",
           preserveNullAndEmptyArrays: true,
         },
       },
-      // chỉ select các trường cần thiết
+
+      // 4) Join vào collection comments để nhúng toàn bộ mảng comment objects
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_id", // _id của post
+          foreignField: "postId", // postId trong comment
+          as: "comments",
+        },
+      },
+
+      // 5) Chọn ra những trường cần thiết
       {
         $project: {
           _id: 1,
@@ -157,15 +170,16 @@ exports.getAllPosts = async (req, res) => {
           createdAt: 1,
           "user._id": 1,
           "user.email": 1,
-          "info.name": 1,
-          "info.imageId": 1,
+          "userInfo.name": 1,
+          "userInfo.imageId": 1,
+          comments: 1, // mảng comment đầy đủ
         },
       },
     ]);
 
     return res.json({ success: true, data: posts });
-  } catch (err) {
-    console.error("Error in getAllPosts aggregation:", err);
+  } catch (error) {
+    console.error("Error in getAllPosts:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
