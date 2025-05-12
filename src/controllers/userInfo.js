@@ -1,98 +1,122 @@
-const UserInfo = require('../models/userInfo');
-const User = require('../models/users');
+const UserInfo = require("../models/userInfo");
+const User = require("../models/users");
 
 exports.postUserInfo = async (req, res) => {
-    const { name, bio, university, imageId } = req.body;
-    //const userId = req.user.userId;
-    try {
-        const newUserInfo = new UserInfo({
-            //userId,
-            name,
-            bio,
-            university,
-            imageId
-        });
+  // 1. Lấy userId từ req.user (middleware authenticateJWT phải gán)
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Unauthorized: no user ID" });
+  }
 
-        await User.findByIdAndUpdate(
-            //userId,
-            { userInfoId: newUserInfo._id, },
-            { new: true }
-        );
+  const { name, bio, university, imageId } = req.body;
 
-        await newUserInfo.save();
+  try {
+    // 2. Tạo mới UserInfo và lưu
+    const newUserInfo = new UserInfo({
+      userId, // nếu bạn muốn giữ reference trong UserInfo
+      name,
+      bio,
+      university,
+      imageId,
+    });
+    await newUserInfo.save();
 
-        res.status(201).json({
-            message: "UserInfo saved",
-            data: newUserInfo
-        })
+    // 3. Cập nhật trường userInfoId trên User
+    const updatedUser = await User.findByIdAndUpdate(
+      userId, // ↖ Đây là ID, không phải object filter
+      { userInfoId: newUserInfo._id }, // ↖ Đây là object update
+      { new: true, select: "-password" } // ↖ Trả về document mới, exclude password
+    );
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
-    catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-}
+
+    // 4. Trả về thành công
+    return res.status(201).json({
+      success: true,
+      message: "UserInfo saved",
+      data: newUserInfo,
+    });
+  } catch (error) {
+    console.error("Error in postUserInfo:", error);
+    return res.status(500).json({ success: false, error: "Server error" });
+  }
+};
 
 exports.getUserInfo = async (req, res) => {
-    try {
-        const userInfor = await UserInfo.findById(req.params.id);
+  try {
+    const userInfor = await UserInfo.findById(req.params.id);
 
-        if (!userInfor) {
-            return res.status(404).send('Not found');
-        }
+    if (!userInfor) {
+      return res.status(404).send("Not found");
+    }
 
-        res.json({
-            message: "Get userInfo successfully",
-            data: userInfor
-        })
-    }
-    catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Server error');
-    }
-}
+    res.json({
+      message: "Get userInfo successfully",
+      data: userInfor,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Server error");
+  }
+};
 
 exports.updateUserInfo = async (req, res) => {
-    try {
-        const updatedUserInfo = await UserInfo.findByIdAndUpdate(
-            req.params.id,
-            {
-                userId: req.userId,
-                name: req.name,
-                bio: req.bio,
-                university: req.university,
-                imageId: req.ImageId
-            },
-            { new: true }
-        );
+  // 1. Đảm bảo req.user.userId đã được set bởi authenticateJWT
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Unauthorized: no user ID" });
+  }
 
-        if (!updatedUserInfo) {
-            return res.status(404).json({ error: 'Not found UserInfo' });
-        }
-        res.json({
-            message: 'Update UserInfo successfully',
-            data: updatedUserInfo
-        });
+  // 2. Lấy id của UserInfo từ params, và data cần cập nhật từ body
+  const userInfoId = req.params.id;
+  const { name, bio, university, imageId } = req.body;
+
+  try {
+    // 3. Cập nhật
+    const updatedUserInfo = await UserInfo.findByIdAndUpdate(
+      userInfoId,
+      { name, bio, university, imageId },
+      { new: true, runValidators: true }
+    );
+    if (!updatedUserInfo) {
+      return res
+        .status(404)
+        .json({ success: false, message: "UserInfo not found" });
     }
-    catch (error) {
-        console.error('Error:', error);
-    }
-}
+
+    // 4. Trả về JSON
+    return res.json({
+      success: true,
+      message: "Update UserInfo successfully",
+      data: updatedUserInfo,
+    });
+  } catch (error) {
+    console.error("Error in updateUserInfo:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 exports.deleteUserInfo = async (req, res) => {
-    try {
-        const UserInfo = UserInfo.findByIdAndDelete(req.params.id);
+  try {
+    const UserInfo = UserInfo.findByIdAndDelete(req.params.id);
 
-        if (!UserInfo) {
-            return res.status(404).json({
-                message: 'Not found'
-            });
-        }
+    if (!UserInfo) {
+      return res.status(404).json({
+        message: "Not found",
+      });
+    }
 
-        res.json({
-            message: 'Deleted UserInfo successfully',
-        });
-    }
-    catch (error) {
-        console.error('Error:', error);
-    }
-}
+    res.json({
+      message: "Deleted UserInfo successfully",
+    });
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};

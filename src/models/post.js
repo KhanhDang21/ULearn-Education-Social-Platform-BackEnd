@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const postSchema = mongoose.Schema(
   {
@@ -11,26 +11,28 @@ const postSchema = mongoose.Schema(
     groupId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Group",
-      required: false
+      required: false,
     },
     imageId: {
-      type: String,
-      trim: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Image",
     },
     content: {
-      type: String
+      type: String,
     },
-    comments: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Comment"
-    }],
+    comments: [
+      {
+        type: Array,
+        default: [],
+      },
+    ],
     react: {
       type: Number,
-      default: 0
+      default: 0,
     },
     status: {
       type: Boolean,
-      default: true
+      default: true,
     },
   },
   {
@@ -38,4 +40,4 @@ const postSchema = mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model('Post', postSchema); 
+module.exports = mongoose.model("Post", postSchema);
