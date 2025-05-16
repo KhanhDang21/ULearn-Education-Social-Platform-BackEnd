@@ -6,40 +6,28 @@ const mongoose = require("mongoose");
 
 const upload = multer();
 exports.addPost = [
-  authenticateJWT, // Bắt buộc phải login, middleware sẽ set req.user.userId
-  upload.single("image"), // Đọc file form-data key='image'
+  authenticateJWT,
   async (req, res) => {
-    const userId = req.user.userId; // lấy từ token
+    const userId = req.user.userId;
     const content = req.body.content?.trim();
+    const imageId = req.body.imageId ?? null;
 
-    if (!content && !req.file) {
+    if (!content && !imageId) {
       return res
         .status(400)
         .json({ success: false, message: "Content or image required" });
     }
 
     try {
-      // 1) Nếu có ảnh, lưu vào collection Image
-      let imageId = null;
-      if (req.file) {
-        const newImage = new Image({
-          data: req.file.buffer,
-          contentType: req.file.mimetype,
-        });
-        await newImage.save();
-        imageId = newImage._id;
-      }
-
-      // 2) Tạo Post mới
       const newPost = new Post({
         userId,
         content,
-        imageId, // có thể null nếu không upload ảnh
-        comments: [], // khởi mặc định
+        imageId,
+        comments: [],
+        status: true, // if you need it
       });
       await newPost.save();
 
-      // 3) Trả về
       return res.status(201).json({
         success: true,
         message: "Post saved",
