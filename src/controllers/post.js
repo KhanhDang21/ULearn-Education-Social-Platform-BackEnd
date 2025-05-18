@@ -45,19 +45,23 @@ exports.addPost = [
 
 exports.getPost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const id = req.params.id;
+    // Find posts where either userInfoId or userId matches the provided id
+    const posts = await Post.find({
+      $or: [{ userInfoId: id }, { userId: id }],
+    });
 
-    if (!post) {
-      return res.status(404).send("Not found");
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({ message: "No posts found for this user" });
     }
 
     res.json({
-      message: "Get userInfo successfully",
-      data: post,
+      message: "Posts retrieved successfully",
+      data: posts,
     });
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Server error");
+    console.error("Error in getPost:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 

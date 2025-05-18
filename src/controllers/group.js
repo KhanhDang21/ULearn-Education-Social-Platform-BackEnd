@@ -137,14 +137,18 @@ exports.deleteGroup = async (req, res) => {
 exports.getAllGroups = async (req, res) => {
   try {
     const userId = req.user?.userId;
-    if (!userId)
+    if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-    // chuyển userId thành ObjectId đúng cách
+    // Chuyển sang ObjectId để so sánh trong pipeline
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
     const groups = await Group.aggregate([
+      // 1. Sort nhóm mới nhất trước
       { $sort: { createdAt: -1 } },
+
+      // 2. Thêm URL cho banner và logo
       {
         $addFields: {
           bannerUrl: {
@@ -161,16 +165,31 @@ exports.getAllGroups = async (req, res) => {
               null,
             ],
           },
+          ppd: 0,
         },
       },
+
+      // 3. Lookup thông tin thành viên từ userinfos
       {
         $lookup: {
-          from: "userinfos",
-          localField: "members",
-          foreignField: "userId",
+          from: "userinfos", // collection lưu profile người dùng
+          localField: "members", // mảng ObjectId ở Group.members
+          foreignField: "userId", // trường link ở userinfos
           as: "memberInfos",
         },
       },
+
+      // 4. Lookup thông tin admins (trong đó admins[0] là creator)
+      {
+        $lookup: {
+          from: "userinfos",
+          localField: "admins",
+          foreignField: "userId",
+          as: "adminInfos",
+        },
+      },
+
+      // 5. Project ra đúng shape cần thiết
       {
         $project: {
           _id: 1,
@@ -178,7 +197,11 @@ exports.getAllGroups = async (req, res) => {
           description: 1,
           bannerUrl: 1,
           logoUrl: 1,
+
+          // Tổng số thành viên
           memberCount: { $size: "$members" },
+
+          // Lấy tối đa 5 avatar thành viên
           members: {
             $slice: [
               {
@@ -186,6 +209,7 @@ exports.getAllGroups = async (req, res) => {
                   input: "$memberInfos",
                   as: "mi",
                   in: {
+                    _id: "$$mi.userId",
                     name: "$$mi.name",
                     avatarUrl: {
                       $concat: ["/api/image/get-image/", "$$mi.imageId"],
@@ -196,14 +220,34 @@ exports.getAllGroups = async (req, res) => {
               5,
             ],
           },
-          ppd: 0,
-          type: { $cond: [{ $eq: ["$status", true] }, "Public", "Private"] },
+
+          // Map toàn bộ admins (creator + admin khác nếu có)
+          admins: {
+            $map: {
+              input: "$adminInfos",
+              as: "ai",
+              in: {
+                _id: "$$ai.userId",
+                name: "$$ai.name",
+                avatarUrl: {
+                  $concat: ["/api/image/get-image/", "$$ai.imageId"],
+                },
+              },
+            },
+          },
+
+          // Đặt type dựa trên status boolean
+          type: {
+            $cond: [{ $eq: ["$status", true] }, "Public", "Private"],
+          },
+
+          // Kiểm tra xem user hiện tại có trong members không
           isJoin: { $in: [userObjectId, "$members"] },
         },
       },
     ]);
 
-    return res.json({ success: true, data: groups });
+    return res.status(200).json({ success: true, data: groups });
   } catch (err) {
     console.error("Error in getAllGroups:", err);
     return res.status(500).json({ success: false, message: err.message });

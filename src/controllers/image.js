@@ -1,4 +1,5 @@
 const Image = require("../models/image");
+const userInfo = require("../models/userInfo");
 
 exports.postImage = async (req, res) => {
   try {
@@ -33,10 +34,6 @@ exports.getImage = async (req, res) => {
 
     res.set("Content-Type", image.contentType);
     return res.send(image.data);
-    // res.json({
-    //     message: "Get image successfully",
-    //     contentType: image.contentType
-    // })
   } catch (error) {
     console.error("Error:", error);
     res.status(500).send("Server error");
