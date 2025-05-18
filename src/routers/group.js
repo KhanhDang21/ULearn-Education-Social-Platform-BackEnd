@@ -8,9 +8,13 @@ const router = express.Router();
 router.post("/add-group", authenticateJWT, groupController.addGroup);
 router.get("/get-all-groups", authenticateJWT, groupController.getAllGroups);
 router.get("/get-group", authenticateJWT, groupController.getGroup);
-router.post("/join-group", authenticateJWT, groupController.joinGroup);
-router.patch("/leave-group", authenticateJWT, groupController.leaveGroup);
-router.delete("/deleta-group", authenticateJWT, groupController.deleteGroup);
+router.post("/join-group/:id", authenticateJWT, groupController.joinGroup);
+router.post("/leave-group/:id", authenticateJWT, groupController.leaveGroup);
+router.delete(
+  "/delete-group/:id",
+  authenticateJWT,
+  groupController.deleteGroup
+);
 router.post("/add-post", authenticateJWT, groupController.addPost);
 
 module.exports = router;

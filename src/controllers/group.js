@@ -54,7 +54,7 @@ exports.getGroup = async (req, res) => {
 
 exports.joinGroup = async (req, res) => {
   try {
-    const group = await group.findById(req.params.id);
+    const group = await Group.findById(req.params.id);
     if (!group) {
       return res.status(404).json({
         message: "Group not found",
@@ -78,24 +78,28 @@ exports.joinGroup = async (req, res) => {
 
 exports.leaveGroup = async (req, res) => {
   try {
-    const group = await Group.findById(req.params.id);
+    // lấy id từ params
+    const { id } = req.params;
+    const group = await Group.findById(id);
     if (!group) {
-      return res.status(404).json({
-        message: "Group not found",
-      });
+      return res.status(404).json({ message: "Group not found" });
     }
 
+    // loại bỏ user khỏi members
     group.members = group.members.filter(
       (member) => member.toString() !== req.user.userId
     );
     await group.save();
 
-    res.json({
+    // trả 200 + JSON
+    return res.status(200).json({
       message: "Left group",
+      // nếu muốn front-end có data group mới:
+      // data: group
     });
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Error in leaveGroup:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 };
 
